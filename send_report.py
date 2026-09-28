@@ -3,6 +3,12 @@ from collections import defaultdict
 import requests
 from espn_api.football import League
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv("fanta.env")
+except ImportError:
+    pass
+
 MY_HINTS = ("head bangers", "edwin", "familia")
 FA_SIZE = 100
 BENCH = {"BE", "BN", "IR", "IR+", "IR-", "NA"}
