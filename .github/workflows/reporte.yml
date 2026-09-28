@@ -17,7 +17,10 @@ jobs:
 
       - name: Instalar
         run: pip install -r requirements.txt
-
+      - name: Check secrets
+        run: |
+          echo "LEAGUE_ID set? ${{ secrets.LEAGUE_ID != '' }}"
+          echo "YEAR set? ${{ secrets.YEAR != '' }}"
       - name: Enviar reporte
         env:
           LEAGUE_ID: ${{ secrets.LEAGUE_ID }}
