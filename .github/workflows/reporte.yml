@@ -16,11 +16,6 @@ jobs:
       - name: Instalar
         run: pip install -r requirements.txt
 
-      - name: Debug vars
-        run: |
-          echo "var league empty? ${{ vars.LEAGUE_ID == '' }}"
-          echo "secret token empty? ${{ secrets.TELEGRAM_TOKEN == '' }}"
-
       - name: Enviar reporte
         env:
           LEAGUE_ID: "1884225720"
@@ -28,7 +23,10 @@ jobs:
           ESPN_S2: ${{ secrets.ESPN_S2 }}
           SWID: ${{ secrets.SWID }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          ELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          echo "python sees LEAGUE_ID? ${LEAGUE_ID:+yes}"
+          echo "s2? ${ESPN_S2:+yes}"
+          echo "swid? ${SWID:+yes}"
+          echo "token? ${TELEGRAM_TOKEN:+yes}"
+          echo "chat? ${TELEGRAM_CHAT_ID:+yes}"
           python send_report.py
