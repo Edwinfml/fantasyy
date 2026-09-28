@@ -23,8 +23,8 @@ jobs:
           echo "YEAR set? ${{ secrets.YEAR != '' }}"
       - name: Enviar reporte
         env:
-          LEAGUE_ID: ${{ secrets.LEAGUE_ID }}
-          YEAR: ${{ secrets.YEAR }}
+          LEAGUE_ID: ${{ vars.LEAGUE_ID }}
+          YEAR: ${{ vars.YEAR }}
           ESPN_S2: ${{ secrets.ESPN_S2 }}
           SWID: ${{ secrets.SWID }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
