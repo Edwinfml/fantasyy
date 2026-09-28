@@ -2,17 +2,16 @@ name: Fantasy reporte
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * 5" # jueves 8pm AST
-    - cron: "0 14 * * 0" # domingo 10am AST
 
 jobs:
   report:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
