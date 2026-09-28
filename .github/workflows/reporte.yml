@@ -21,7 +21,7 @@ jobs:
 
       - name: Enviar reporte
         env:
-          LEAGUE_ID: ""
+          LEAGUE_ID: "1884225720"
           YEAR: "2026"
           ESPN_S2: ${{ secrets.ESPN_S2 }}
           SWID: ${{ secrets.SWID }}
