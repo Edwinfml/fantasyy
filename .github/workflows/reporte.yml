@@ -2,6 +2,9 @@ name: Fantasy reporte
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 14 * * 0"
+    - cron: "0 0 * * 3"
 
 jobs:
   report:
@@ -18,15 +21,11 @@ jobs:
 
       - name: Enviar reporte
         env:
-          LEAGUE_ID: "1884225720"
+          LEAGUE_ID: ""
           YEAR: "2026"
           ESPN_S2: ${{ secrets.ESPN_S2 }}
           SWID: ${{ secrets.SWID }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          echo "s2? ${ESPN_S2:+yes}"
-          echo "swid? ${SWID:+yes}"
-          echo "token? ${TELEGRAM_TOKEN:+yes}"
-          echo "chat? ${TELEGRAM_CHAT_ID:+yes}"
-          python send_report.py
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python send_report.py

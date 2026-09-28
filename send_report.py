@@ -1,4 +1,5 @@
 import os
+import time
 from collections import defaultdict
 import requests
 from espn_api.football import League
@@ -58,19 +59,77 @@ def tg_send(text):
     token = env("TELEGRAM_TOKEN")
     chat = env("TELEGRAM_CHAT_ID")
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    r = requests.post(
-        url,
-        json={"chat_id": chat, "text": text, "parse_mode": "Markdown"},
-        timeout=30,
-    )
-    if not r.ok:
-        # reintenta sin markdown si ESPN pone un _ o *
-        r2 = requests.post(
+    chunks = [text[i:i + 3500] for i in range(0, len(text), 3500)] or [text]
+    for chunk in chunks:
+        r = requests.post(
             url,
-            json={"chat_id": chat, "text": text},
+            json={"chat_id": chat, "text": chunk},
             timeout=30,
         )
-        r2.raise_for_status()
+        r.raise_for_status()
+
+def gemini_analisis(datos):
+    key = env("GEMINI_API_KEY")
+    if not key:
+        return "Sin GEMINI_API_KEY: no hay analisis IA."
+
+    prompt = f"""Eres analista de fantasy NFL redraft.
+Solo usa estos datos. No inventes lesiones ni noticias.
+
+{datos}
+
+Responde en espanol, corto, con este formato exacto:
+START
+- Juega: ...
+- Sienta: ...
+WAIVERS
+- Add: ...
+- Drop: ...
+MATCHUP
+- ...
+NO TOCAR
+- ...
+Si no hay move claro, dilo."""
+
+    models = (
+        "gemini-3.8-flash",
+        "gemini-3.6-flash",
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
+    )
+    last_err = "Gemini no respondio."
+    for model in models:
+        url = (
+            "https://generativelanguage.googleapis.com/v1beta/"
+            f"models/{model}:generateContent"
+        )
+        for attempt in range(3):
+            r = requests.post(
+                url,
+                headers={
+                    "x-goog-api-key": key,
+                    "Content-Type": "application/json",
+                },
+                json={"contents": [{"parts": [{"text": prompt}]}]},
+                timeout=45,
+            )
+            if r.status_code == 503:
+                last_err = f"Gemini 503 en {model}, reintento {attempt + 1}."
+                time.sleep(2 * (attempt + 1))
+                continue
+            if r.status_code == 404:
+                last_err = f"Gemini fallo (404) en {model}."
+                break
+            if not r.ok:
+                last_err = f"Gemini fallo ({r.status_code}) en {model}."
+                break
+            data = r.json()
+            try:
+                return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+            except Exception:
+                last_err = f"Gemini sin texto ({model})."
+                break
+    return last_err
 
 def main():
     league = League(
@@ -189,13 +248,30 @@ def main():
         f"{my.team_name} {my.wins}-{my.losses}",
         f"Proy {my_proj:.1f} vs {opp.team_name if opp else '-'} {opp_proj:.1f} ({my_proj-opp_proj:+.1f})",
         "",
-        "3 ADDS",
+        "STARTERS",
     ]
+    for p in my_s:
+        flag = "!" if is_hurt(p) else " "
+        slot = getattr(p, "slot_position", "") or ""
+        lines.append(
+            f"{flag} {slot:4} {p.name} ({p.position} {p.proTeam}) "
+            f"{proj(p):.1f} {p.injuryStatus}"
+        )
+    lines += ["", "BANCA"]
+    for p in my_b:
+        flag = "!" if is_hurt(p) else " "
+        lines.append(
+            f"{flag} {p.name} ({p.position} {p.proTeam}) {proj(p):.1f} {p.injuryStatus}"
+        )
+
+    lines += ["", "3 ADDS"]
     if not adds:
         lines.append("No hay adds claros.")
     for i, (delta, fa, worst, pos) in enumerate(adds, 1):
         vs = worst.name if worst else "?"
-        lines.append(f"{i}. {fa.name} ({pos}, {fa.proTeam}) {proj(fa):.1f} +{delta:.1f} vs {vs}")
+        lines.append(
+            f"{i}. {fa.name} ({pos}, {fa.proTeam}) {proj(fa):.1f} +{delta:.1f} vs {vs}"
+        )
 
     lines += ["", "3 DROPS"]
     if not drops:
@@ -203,24 +279,29 @@ def main():
     for i, p in enumerate(drops, 1):
         lines.append(f"{i}. {p.name} ({p.position}) {proj(p):.1f} {p.injuryStatus}")
 
-    lines += ["", "START / SIT"]
+    lines += ["", "START / SIT (proy ESPN)"]
     if not sit_moves:
         lines.append("Sin swap claro.")
     for d, w, s, pos in sit_moves:
-        lines.append(f"SIT {w.name} ({proj(w):.1f}) -> START {s.name} ({proj(s):.1f}) {pos} {d:+.1f}")
+        lines.append(
+            f"SIT {w.name} ({proj(w):.1f}) -> START {s.name} ({proj(s):.1f}) {pos} {d:+.1f}"
+        )
 
     if opp:
         hurt = [p for p in opp.roster if is_hurt(p)]
         lines += ["", f"Rival: {opp.team_name}"]
         if hurt:
-            for p in hurt[:6]:
+            for p in hurt[:8]:
                 lines.append(f"- {p.name} {p.position} {p.injuryStatus}")
         else:
             lines.append("Sin flags fuertes.")
 
     text = "\n".join(lines)
     print(text)
-    tg_send(text)
+
+    ia = gemini_analisis(text)
+    print("\n--- IA ---\n", ia)
+    tg_send(text + "\n\nANALISIS IA\n" + ia)
     print("Enviado a Telegram.")
 
 if __name__ == "__main__":
