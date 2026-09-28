@@ -23,12 +23,12 @@ jobs:
 
       - name: Enviar reporte
         env:
-          LEAGUE_ID: ${{ vars.LEAGUE_ID || secrets.LEAGUE_ID }}
-          YEAR: ${{ vars.YEAR || secrets.YEAR || '2026' }}
+          LEAGUE_ID: "1884225720"
+          YEAR: "2026"
           ESPN_S2: ${{ secrets.ESPN_S2 }}
           SWID: ${{ secrets.SWID }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           echo "python sees LEAGUE_ID? ${LEAGUE_ID:+yes}"
           python send_report.py
