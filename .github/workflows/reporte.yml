@@ -7,26 +7,28 @@ jobs:
   report:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Instalar
         run: pip install -r requirements.txt
-      - name: Check secrets
+
+      - name: Debug vars
         run: |
-          echo "LEAGUE_ID set? ${{ secrets.LEAGUE_ID != '' }}"
-          echo "YEAR set? ${{ secrets.YEAR != '' }}"
+          echo "var league empty? ${{ vars.LEAGUE_ID == '' }}"
+          echo "secret token empty? ${{ secrets.TELEGRAM_TOKEN == '' }}"
+
       - name: Enviar reporte
         env:
-          LEAGUE_ID: ${{ vars.LEAGUE_ID }}
-          YEAR: ${{ vars.YEAR }}
+          LEAGUE_ID: ${{ vars.LEAGUE_ID || secrets.LEAGUE_ID }}
+          YEAR: ${{ vars.YEAR || secrets.YEAR || '2026' }}
           ESPN_S2: ${{ secrets.ESPN_S2 }}
           SWID: ${{ secrets.SWID }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python send_report.py
+        run: |
+          echo "python sees LEAGUE_ID? ${LEAGUE_ID:+yes}"
+          python send_report.py
