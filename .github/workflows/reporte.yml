@@ -20,10 +20,10 @@ jobs:
 
       - name: Enviar reporte
         env:
-          LEAGUE_ID: ${{ 1884225720 }}
-          YEAR: ${{ 2026 }}
-          ESPN_S2: ${{ AEAHKiVnbGCdDg4lCvdNKvEBJQWl3BhLa7D5SwxCB0MGSNQkr0JHNFiH9ybRKlQtADb7%2BzRUeiEb5tcHJ4b7fgtuUuaPkQjsUXP4iJYtuD3nvOia4y7LSvkX2i%2BMke9wRJMTjC%2BSxKj0AW2hYMzsZGsnHtJK1VJhGyFGdGDuG%2FVRtA6SwL%2BCin7W7t5NBWxbZpU0ZnILNn%2FrbD8%2FamOWm%2BSQmmVkfASzRASt%2FDFmKvyuLOcrBdvgUiHKRn%2BkVreo0PmAzo6qU2XdEG%2FssQH6mArUQU%2FFG4qVJUHB6nhldVQJVv5Cl155olUXLGEJ3qk%2FJpnwf%2BKSMTUJi7bJmYa8%2Bp63 }}
-          SWID: ${{ E2C62424-D5C3-46E2-B48F-281D5EE5E649 }}
-          TELEGRAM_TOKEN: ${{ 8766001825:AAHBL_BDQ80urupbxr2HJeoTz3F1hTcJptw }}
-          TELEGRAM_CHAT_ID: ${{ 1085556082 }}
+          LEAGUE_ID: ${{ secrets.LEAGUE_ID }}
+          YEAR: ${{ secrets.YEAR }}
+          ESPN_S2: ${{ secrets.ESPN_S2 }}
+          SWID: ${{ secrets.SWID }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python send_report.py
